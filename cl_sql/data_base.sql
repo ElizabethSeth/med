@@ -1,5 +1,9 @@
 create database card_data ;
-GRANT SELECT, INSERT, CREATE TABLE ON card_data.* TO developer;
+GRANT SELECT, INSERT, CREATE TABLE ON card_data.* TO developper;
+select * from card_data.large_patterns role_table_grants;
+GRANT ALL ON *.* TO admin WITH GRANT OPTION;
+
+
 CREATE TABLE card_data.hi_large (
                                     Timestamp String
                                     ,`From Bank` Int64
@@ -20,17 +24,6 @@ SELECT
     count(*)
 FROM card_data.hi_large;
 
-SElECT
-    Date
-    ,Account
-    ,`Receiving Currency`
-    --,rank() over (partition by Account,`Receiving Currency` , Date) as rank
-    ,rank() over (partition by  Account ,`Receiving Currency`  order by Date) as rank
-    --,row_number() over (partition by Account , `Receiving Currency`, Date) as row_number
-    --,dense_rank() over (partition by Account , `Receiving Currency`,  Date) as dense_rank
-
-from card_data.hi_large
-    limit 500;
 
 select
     parseDateTimeBestEffort(Timestamp)
@@ -57,7 +50,8 @@ CREATE TABLE card_data.medium (
                                     ,`Is Laundering` Nullable(Float64)
 ) ENGINE = MergeTree()
       ORDER BY Timestamp;
-DROP TABLE  if exists card_data.medium;
+
+
 CREATE table card_data.hi_small (
                                     Timestamp String
                                     ,`From Bank` Int64
@@ -73,13 +67,7 @@ CREATE table card_data.hi_small (
 ) ENGINE = MergeTree()
       ORDER BY Timestamp;
 
-DROP TABLE  if exists card_data.hi_small;
-
-
-select * from card_data.li_medium limit 10;
---select * from card_data.li_medium limit 10;
-select * from card_data.hi_small limit 10;
-SHOW TABLES FROM card_data;
+--DROP TABLE  if exists card_data.hi_small;
 
 CREATE TABLE card_data.large_patterns (
                                     Timestamp String,
@@ -99,9 +87,6 @@ CREATE TABLE card_data.large_patterns (
  show tables from card_data;
 
 select * from card_data.large_patterns limit 300;
-
-
-
 
 SELECT
     `From Bank`,
@@ -164,37 +149,20 @@ SELECT
     `From Bank`,
     `To Bank`,
     `Amount Received`,
-    MAX(`Amount Received`) OVER (PARTITION BY `Anomaly Type`) AS max_received_by_anomaly
+    max(`Amount Received`) OVER (PARTITION BY `Anomaly Type`) AS max_received_by_anomaly
 FROM card_data.large_patterns;
 
 
 
 
 
-select `From Bank`, `Anomaly Type`, count(*) over (partition by `From Bank`, `Anomaly Type`) as total_anomalies_type
+select `From Bank`
+       ,`Anomaly Type`
+       ,count(*) over (partition by `From Bank`, `Anomaly Type`) as total_anomalies_type
        ,row_number() over(partition by `From Bank`, `Anomaly Type` order by `Timestamp` asc ) as RowNumberType
        ,rank() over (partition by `From Bank`, `Anomaly Type` order by `Amount Received` desc) as RankType
 FROM card_data.large_patterns
 Where `Anomaly Type` is not null;
-
-
-
-SELECT *
-FROM card_data.large_patterns AS lp
-         LEFT JOIN card_data.hi_large AS hl
-                   ON lp.Timestamp = hl.Timestamp
-
-UNION ALL
-
-SELECT *
-FROM card_data.hi_large AS hl
-         LEFT JOIN card_data.large_patterns AS lp
-                   ON lp.Timestamp = hl.Timestamp
-WHERE lp.Timestamp IS NULL;
-
-
-
-
 
 
 
@@ -288,9 +256,7 @@ select
         (partition by Year,Month_Name,Account,`Receiving Currency`
         order by Day
         ) as balance
-from card_data.large_patterns
-;
-
+from card_data.large_patterns;
 
 select
     Year
@@ -536,7 +502,7 @@ select
      ,row_number() over (partition by `From Bank`, `To Bank`,Account, `Receiving Currency`, Year, Month_Name order by Year, Month_Name) as row_nb
 from card_data.large_patterns;
 
-
+select * from card_data.large_patterns limit 10;
 
 
 
@@ -624,3 +590,7 @@ SELECT
     (Amount_Paid / IF(previous_month_paid = 0, 1, previous_month_paid)) * 100 AS paid_percentage
 FROM monthly_data;
 
+
+
+
+select * from card_data.large_patterns limit 10;
