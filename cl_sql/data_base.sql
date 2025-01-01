@@ -3,7 +3,7 @@ GRANT SELECT, INSERT, CREATE TABLE ON card_data.* TO developper;
 select * from card_data.large_patterns role_table_grants;
 GRANT ALL ON *.* TO admin WITH GRANT OPTION;
 
-
+-- Create a table named "hi_large" in the "card_data" schema with a specified structure for storing financial transaction data.
 CREATE TABLE card_data.hi_large (
                                     Timestamp String
                                     ,`From Bank` Int64
@@ -25,17 +25,24 @@ SELECT
 FROM card_data.hi_large;
 
 
+
+-- Convert the Timestamp string field to DateTime format using the best-effort parser.
 select
     parseDateTimeBestEffort(Timestamp)
 from card_data.hi_large;
 
+
+-- Convert the Timestamp string field to DateTime format using the best-effort parser.
 alter table card_data.hi_large
 add column  Date DateTime;
 
+-- Update the "Date" column with parsed DateTime values from the "Timestamp" column.
 alter table card_data.hi_large
 update Date = parseDateTimeBestEffort(Timestamp)
 where 1 = 1;
 
+
+-- Create another table "medium" with a similar structure to "hi_large" for potentially storing a different set of transactions
 CREATE TABLE card_data.medium (
                                     Timestamp String
                                     ,`From Bank` Int64
@@ -69,6 +76,8 @@ CREATE table card_data.hi_small (
 
 --DROP TABLE  if exists card_data.hi_small;
 
+
+-- Create a table "large_patterns" with an additional column "Anomaly Type" to track anomalies.
 CREATE TABLE card_data.large_patterns (
                                     Timestamp String,
                                     `From Bank` Int64,
@@ -84,22 +93,26 @@ CREATE TABLE card_data.large_patterns (
                                     `Anomaly Type` Nullable(String)
 ) ENGINE = MergeTree()
       ORDER BY Timestamp;
+
+
  show tables from card_data;
 
 select * from card_data.large_patterns limit 300;
 
+-- Using window functions to calculate the total amount received per "From Bank" (grouped by bank)
 SELECT
     `From Bank`,
     SUM(`Amount Received`) OVER (PARTITION BY `From Bank`) AS TotalReceivedPerBank
 FROM card_data.large_patterns;
 
-
+-- Calculate the cumulative amount received by each "From Bank" ordered by Timestamp
 SELECT
     `From Bank`
     ,Timestamp
     ,SUM(`Amount Received`) OVER (PARTITION BY `From Bank` ORDER BY Timestamp) AS CumulativeReceived
 FROM card_data.large_patterns;
 
+-- Count the number of transactions per "Account_1" (receiver) using window functions.
 SELECT
     `Account_1`,
     COUNT(*) OVER (PARTITION BY `Account_1`) AS TransactionsPerReceiver
@@ -108,9 +121,9 @@ FROM card_data.large_patterns;
 SELECT
     `From Bank`
     ,`Amount Received`
-    ,ROW_NUMBER() OVER (PARTITION BY `From Bank` ORDER BY Timestamp) AS TransactionNumber
-    ,DENSE_RANK() OVER (PARTITION BY `From Bank` ORDER BY `Amount Received` DESC) AS DenseTransactionRank
-    ,RANK() OVER (PARTITION BY `From Bank` ORDER BY `Amount Received` DESC) AS TransactionRank
+    ,row_number() OVER (PARTITION BY `From Bank` ORDER BY Timestamp) AS TransactionNumber
+    ,dense_rank() OVER (PARTITION BY `From Bank` ORDER BY `Amount Received` DESC) AS DenseTransactionRank
+    ,rank() OVER (PARTITION BY `From Bank` ORDER BY `Amount Received` DESC) AS TransactionRank
 FROM card_data.large_patterns;
 
 SELECT
@@ -136,26 +149,26 @@ FROM card_data.large_patterns;
 
 
 SELECT
-    `Timestamp`,
-    `From Bank`,
-    `Anomaly Type`,
-    `Amount Received`,
-    SUM(`Amount Received`) OVER (PARTITION BY `From Bank`, `Anomaly Type` ORDER BY `Timestamp`) AS cumulative_sum
+    `Timestamp`
+    ,`From Bank`
+    ,`Anomaly Type`
+    ,`Amount Received`
+    ,SUM(`Amount Received`) OVER (PARTITION BY `From Bank`, `Anomaly Type` ORDER BY `Timestamp`) AS cumulative_sum
 FROM card_data.large_patterns;
 
 
 SELECT
-    `Anomaly Type`,
-    `From Bank`,
-    `To Bank`,
-    `Amount Received`,
-    max(`Amount Received`) OVER (PARTITION BY `Anomaly Type`) AS max_received_by_anomaly
+    `Anomaly Type`
+    ,`From Bank`
+    ,`To Bank`
+    ,`Amount Received`
+    ,max(`Amount Received`) OVER (PARTITION BY `Anomaly Type`) AS max_received_by_anomaly
 FROM card_data.large_patterns;
 
 
 
 
-
+-- Count anomalies per "From Bank" and "Anomaly Type", and assign row numbers ordered by "Timestamp" and ranks ordered by "Amount Received"
 select `From Bank`
        ,`Anomaly Type`
        ,count(*) over (partition by `From Bank`, `Anomaly Type`) as total_anomalies_type
@@ -166,20 +179,7 @@ Where `Anomaly Type` is not null;
 
 
 
-SELECT
-    `Timestamp`,
-    `From Bank`,
-    `Anomaly Type`,
-    `Amount Received`,
-    SUM(`Amount Received`) OVER (
-        PARTITION BY `From Bank`, `Anomaly Type`
-        ORDER BY `Timestamp`
-        rows between  5 preceding and 5 following
-    ) AS cumulative_sum
-
-
-FROM card_data.large_patterns;
-
+-- Extract the year, month, and day from the "Timestamp" and display the extracted values.
 SELECT
     toYear(parseDateTimeBestEffort(Timestamp)) AS Year,
     formatDateTime(parseDateTimeBestEffort(Timestamp), '%M') AS Month_Name,
@@ -190,7 +190,7 @@ ALTER TABLE card_data.large_patterns
     ADD COLUMN Year Int32,
     ADD COLUMN Month_Name String,
     ADD COLUMN Day Int32;
-
+-- Update the "Year", "Month_Name", and "Day" columns using the parsed values from the "Timestamp"
 ALTER TABLE card_data.large_patterns
 UPDATE
     Year = toYear(parseDateTimeBestEffort(Timestamp)),
@@ -198,11 +198,21 @@ UPDATE
     Day = toDayOfMonth(parseDateTimeBestEffort(Timestamp))
 WHERE Timestamp IS NOT NULL;
 
-SELECT Year, Month_Name, Day FROM card_data.large_patterns;
-
---range between UNBOUNDED PRECEDING AND CURRENT ROW
 
 
+
+-- Calculate a rolling sum of "Amount Received" within a window of 5 preceding and 5 following rows for each "From Bank" and "Anomaly Type".
+SELECT
+    `Timestamp`,
+    `From Bank`,
+    `Anomaly Type`,
+    `Amount Received`,
+    SUM(`Amount Received`) OVER (
+        PARTITION BY `From Bank`, `Anomaly Type`
+        ORDER BY `Timestamp`
+        rows between  5 preceding and 5 following
+    ) AS cumulative_sum
+FROM card_data.large_patterns;
 
 
 
@@ -342,10 +352,6 @@ from avg_amount
 cross join avg_year;
 
 
-
-select * from card_data.large_patterns limit 10;
-
-
 WITH BankTransactions AS (
     SELECT
         `From Bank`
@@ -355,9 +361,12 @@ WITH BankTransactions AS (
     WHERE `From Bank` IS NOT NULL AND `To Bank` IS NOT NULL
     GROUP BY `From Bank`, `To Bank`
 )
+
 SELECT *
 FROM BankTransactions
 ORDER BY TransactionCount DESC;
+
+
 
 WITH AccountPayments AS (
     SELECT
@@ -375,6 +384,8 @@ SELECT
 FROM AccountPayments
 ORDER BY TotalPaid DESC
 LIMIT 10;
+
+
 
 WITH LaunderingDays AS (
     SELECT
@@ -409,82 +420,12 @@ WITH
         GROUP BY `Payment Currency`
     )
 SELECT
-    COALESCE(ReceivedSum.`Receiving Currency`, PaidSum.`Payment Currency`) AS Currency,
+    coalesce(ReceivedSum.`Receiving Currency`, PaidSum.`Payment Currency`) AS Currency,
     TotalReceived,
     TotalPaid
 FROM ReceivedSum
          FULL OUTER JOIN PaidSum
                          ON ReceivedSum.`Receiving Currency` = PaidSum.`Payment Currency`;
-
-
-WITH previos_month as (
-    select
-        Year
-        , Month_Name
-        ,`From Bank`
-        ,`To Bank`
-         ,Account
-        ,`Receiving Currency`
-        ,`Amount Received`
-        ,`Amount Paid`
-        ,Day
-      ,row_number() over (partition by `From Bank`, `To Bank`,Account, `Receiving Currency`, Year, Month_Name order by Year, Month_Name) as row_nb
-    from card_data.large_patterns
-),
-    calc_deltas as (
-        select
-            `From Bank`
-            ,`To Bank`
-             ,Account
-            ,`Receiving Currency`
-            ,`Amount Paid`
-            ,`Amount Received`
-            , Day
-            sum(`Amount Received`) over (partition by `From Bank`, `To Bank`,Account, `Receiving Currency`, Year, Month_Name
-                order by Year, Month_Name
-                rows between  30 preceding and  current row
-                ) as total_received
-            sum(`Amount Paid`) over (partition by `From Bank`, `To Bank`,Account, `Receiving Currency`, Year, Month_Name
-            order by Year, Month_Name
-            rows between  30 preceding and  current row
-            ) as total_paid
-            from previos_month
-
-
-
-           LAG(`Amount Received`) OVER (PARTITION BY `From Bank`, `To Bank`,Account, `Receiving Currency`, Year, Month_Name ORDER BY Year, Month_Name) as prev_amount
-           LAG(`Amount Paid`) OVER (PARTITION BY `From Bank`, `To Bank`,Account, `Receiving Currency`, Year, Month_Name ORDER BY Year, Month_Name) as prev_paid
-       from previos_month
-)
-select
-    `From Bank`
-    ,`To Bank`
-    ,Account
-    ,`Receiving Currency`
-    ,Day
-    ,prev_amount
-    , prev_paid
-    IF(prev_amount > 0, (`Amount Received` - prev_amount) / prev_amount * 100) AS Received_percent_change
-    IF(prev_paid > 0, (`Amount Paid` - prev_paid) / prev_paid * 100) AS Paid_percent_change
-from calc_deltas;
-
-
-
-
-select
-    `From Bank`
-     ,`To Bank`
-     ,Account
-     ,`Receiving Currency`
-     ,`Amount Paid`
-     ,`Amount Received`
-     , Day
-     ,Year
-
-    LAG(`Amount Received`) OVER (PARTITION BY `From Bank`, `To Bank`,Account, `Receiving Currency`, Year, Month_Name ORDER BY Year, Month_Name) as prev_amount
-    LAG(`Amount Paid`) OVER (PARTITION BY `From Bank`, `To Bank`,Account, `Receiving Currency`, Year, Month_Name ORDER BY Year, Month_Name) as prev_paid
-from from card_data.large_patterns
-
 
 
 
@@ -502,44 +443,6 @@ select
      ,row_number() over (partition by `From Bank`, `To Bank`,Account, `Receiving Currency`, Year, Month_Name order by Year, Month_Name) as row_nb
 from card_data.large_patterns;
 
-select * from card_data.large_patterns limit 10;
-
-
-
-
-
-
-with aggregate_data as (
-    select
-        Year
-         ,Month_Name
-         ,Account
-         ,Day
-         ,sum(`Amount Received`)  as total_received
-         ,sum(`Amount Paid`) as total_paid
-
-    from card_data.large_patterns
-    group by Year, Month_Name, Day ,Account
-)
-select
-
-             Account
-            ,`Receiving Currency`
-            ,`Amount Paid`
-            ,`Amount Received`
-            ,Day
-            ,sum(`Amount Received`) over (partition by Account, `Receiving Currency`, Year, Month_Name
-                order by Year, Month_Name
-
-                rows between  30 preceding and  30 preceding
-                ) as total_received
-            ,sum(`Amount Paid`) over (partition by Account, `Receiving Currency`, Year, Month_Name
-                order by Year, Month_Name
-                rows between  30 preceding and  30 preceding
-                ) as total_paid
-from aggregate_data;
-
-
 
 
 
@@ -547,50 +450,33 @@ WITH aggregate_data AS (
     SELECT
         Year,
         Month_Name,
-        Account,
         Day,
+        Account,
         `Receiving Currency`,
         SUM(`Amount Received`) AS total_received,
         SUM(`Amount Paid`) AS total_paid
     FROM card_data.large_patterns
     GROUP BY Year, Month_Name, Day, Account, `Receiving Currency`
-),
-     monthly_data AS (
-         SELECT
-             Account,
-             `Receiving Currency`,
-             total_paid AS Amount_Paid,
-             total_received AS Amount_Received,
-             Day,
-             Year,
-             Month_Name,
-             SUM(total_received) OVER (
-                 PARTITION BY Account, `Receiving Currency`, Year, Month_Name
-                 ORDER BY Day
-                 ROWS BETWEEN 30 PRECEDING AND 30 PRECEDING
-                 ) AS previous_month_received,
-             SUM(total_paid) OVER (
-                 PARTITION BY Account, `Receiving Currency`, Year, Month_Name
-                 ORDER BY Day
-                 ROWS BETWEEN 30 PRECEDING AND 30 PRECEDING
-                 ) AS previous_month_paid
-         FROM aggregate_data
-     )
+)
 SELECT
     Account,
     `Receiving Currency`,
-    Amount_Paid,
-    Amount_Received,
-    Day,
     Year,
     Month_Name,
-    previous_month_received,
-    previous_month_paid,
-    (Amount_Received / IF(previous_month_received = 0, 1, previous_month_received)) * 100 AS received_percentage,
-    (Amount_Paid / IF(previous_month_paid = 0, 1, previous_month_paid)) * 100 AS paid_percentage
-FROM monthly_data;
+    Day,
+    SUM(total_received) OVER (
+        PARTITION BY Account, `Receiving Currency`, Year, Month_Name
+        ORDER BY Year, Month_Name, Day
+        ROWS BETWEEN 30 PRECEDING AND CURRENT ROW
+        ) AS rolling_total_received,
+    SUM(total_paid) OVER (
+        PARTITION BY Account, `Receiving Currency`, Year, Month_Name
+        ORDER BY Year, Month_Name, Day
+        ROWS BETWEEN 30 PRECEDING AND CURRENT ROW
+        ) AS rolling_total_paid
+FROM aggregate_data
+ORDER BY `Receiving Currency`, Year, Month_Name, Day;
 
 
 
 
-select * from card_data.large_patterns limit 10;
