@@ -536,3 +536,13 @@ WHERE
     match(Account, '^82.*B0$')
 GROUP BY
     `Receiving Currency`;
+
+
+SELECT
+    Account,
+    `Receiving Currency`,
+    dense_rank() OVER (PARTITION BY match(Account, '^[A-Z0-9]+$'), `Receiving Currency` ORDER BY Account) AS dense_rank_per_currency
+FROM
+    card_data.large_patterns
+WHERE
+    match(Account, '^[A-Z0-9]+$');
