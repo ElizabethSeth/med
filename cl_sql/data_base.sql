@@ -477,6 +477,42 @@ SELECT
 FROM aggregate_data
 ORDER BY `Receiving Currency`, Year, Month_Name, Day;
 
+select * from card_data.large_patterns limit 10;
+
+
+SELECT
+    Account,
+    COUNT(*) AS repetitions
+FROM
+    card_data.large_patterns
+GROUP BY
+    Account
+ORDER BY
+    repetitions DESC;
 
 
 
+SELECT
+    Account
+FROM
+    card_data.large_patterns
+WHERE match(Account, '^.{8,10}$');
+
+SELECT
+    *
+FROM
+    card_data.large_patterns
+
+WHERE match(Account, '^[A-Z0-9]+$');
+
+SELECT
+    *
+FROM
+    card_data.large_patterns
+WHERE match(Account, '^[0-9]+$');
+
+SELECT
+    *
+FROM
+    card_data.large_patterns
+WHERE match(Account, '^81.*60$');
