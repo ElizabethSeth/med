@@ -516,3 +516,23 @@ SELECT
 FROM
     card_data.large_patterns
 WHERE match(Account, '^81.*60$');
+
+
+SELECT
+    Account,
+    SUM(1) OVER (PARTITION BY match(Account, 'D3') ORDER BY Account ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cumulative_sum,
+    COUNT(*) OVER (PARTITION BY match(Account, 'D3')) AS total_count
+FROM
+    card_data.large_patterns
+WHERE
+    match(Account, 'D3');
+
+SELECT
+    `Receiving Currency`,
+    COUNT(DISTINCT Account) AS unique_accounts_per_currency
+FROM
+    card_data.large_patterns
+WHERE
+    match(Account, '^82.*B0$')
+GROUP BY
+    `Receiving Currency`;
