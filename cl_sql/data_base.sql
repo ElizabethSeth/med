@@ -546,3 +546,62 @@ FROM
     card_data.large_patterns
 WHERE
     match(Account, '^[A-Z0-9]+$');
+
+
+
+
+
+
+
+
+ALTER TABLE card_data.large_patterns
+    ADD COLUMN `From Bank Code` Nullable(String);
+
+SELECT
+    extract(`From Bank`, '^(\\d{3})') AS `From Bank Code`
+FROM card_data.large_patterns;
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE card_data.large_patterns
+    ADD COLUMN `Time Category` Nullable(String);
+
+SELECT
+    CASE
+        WHEN toHour(Timestamp) BETWEEN 6 AND 12 THEN 'Morning'
+        WHEN toHour(Timestamp) BETWEEN 12 AND 18 THEN 'Afternoon'
+        WHEN toHour(Timestamp) BETWEEN 18 AND 24 THEN 'Evening'
+        ELSE 'Night'
+        END AS `Time Category`
+FROM card_data.large_patterns;
+
+
+ALTER TABLE card_data.large_patterns
+UPDATE `Time Category` = CASE
+                             WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 6 AND 12 THEN 'Morning'
+                             WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 12 AND 18 THEN 'Afternoon'
+                             WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 18 AND 24 THEN 'Evening'
+                             ELSE 'Night'
+    END
+WHERE Timestamp IS NOT NULL;
+
+
+
+
+SELECT
+    Timestamp,
+    `Time Category`
+FROM
+    card_data.large_patterns
+LIMIT 100;
+
+
+
