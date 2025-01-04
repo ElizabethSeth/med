@@ -572,7 +572,25 @@ FROM card_data.large_patterns;
 
 
 ALTER TABLE card_data.large_patterns
+    DROP COLUMN `Time Category`;
+
+ALTER TABLE card_data.large_patterns
     ADD COLUMN `Time Category` Nullable(String);
+
+
+
+
+SELECT
+    database,
+    table,
+    mutation_id,
+    command,
+    parts_to_do,
+    is_done
+FROM system.mutations
+WHERE table = 'large_patterns';
+
+
 
 SELECT
     CASE
@@ -598,10 +616,12 @@ WHERE Timestamp IS NOT NULL;
 
 SELECT
     Timestamp,
-    `Time Category`
+    CASE
+        WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 6 AND 12 THEN 'Morning'
+        WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 12 AND 18 THEN 'Afternoon'
+        WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 18 AND 24 THEN 'Evening'
+        ELSE 'Night'
+        END AS TempTimeCategory
 FROM
     card_data.large_patterns
 LIMIT 100;
-
-
-
