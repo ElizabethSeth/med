@@ -590,6 +590,94 @@ SELECT
 FROM system.mutations
 WHERE table = 'large_patterns';
 
+KILL MUTATION WHERE mutation_id = 'mutation_4.txt';
+KILL MUTATION WHERE mutation_id = 'mutation_5.txt';
+KILL MUTATION WHERE mutation_id = 'mutation_6.txt';
+
+
+OPTIMIZE TABLE card_data.large_patterns FINAL;
+
+
+SELECT
+    *
+FROM card_data.large_patterns
+LIMIT 100;
+
+
+DESCRIBE TABLE card_data.large_patterns;
+
+SELECT
+    Timestamp,
+    parseDateTimeBestEffort(replace(Timestamp, '/', '-')) AS ParsedTimestamp
+FROM card_data.large_patterns
+LIMIT 100;
+
+ALTER TABLE card_data.large_patterns
+UPDATE `Time Category` = CASE
+                             WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 6 AND 12 THEN 'Morning'
+                             WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 12 AND 18 THEN 'Afternoon'
+                             WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 18 AND 24 THEN 'Evening'
+                             ELSE 'Night'
+    END
+WHERE Timestamp IS NOT NULL;
+
+SELECT
+    Timestamp,
+    `Time Category`
+FROM card_data.large_patterns
+LIMIT 100;
+
+
+SELECT
+    Timestamp,
+    parseDateTimeBestEffort(replace(Timestamp, '/', '-')) AS ParsedTimestamp
+FROM card_data.large_patterns
+LIMIT 100;
+
+
+ALTER TABLE card_data.large_patterns
+UPDATE `Time Category` = CASE
+                             WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 6 AND 12 THEN 'Morning'
+                             WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 12 AND 18 THEN 'Afternoon'
+                             WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 18 AND 24 THEN 'Evening'
+                             ELSE 'Night'
+    END
+WHERE Timestamp IS NOT NULL;
+
+
+SELECT
+
+    COUNT(*) AS total_rows,
+    SUM(Timestamp IS NOT NULL) AS non_null_timestamps
+FROM card_data.large_patterns;
+
+
+SELECT
+    mutation_id,
+    command,
+    is_done,
+    parts_to_do
+FROM system.mutations
+WHERE table = 'large_patterns';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 SELECT
