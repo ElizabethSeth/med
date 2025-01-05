@@ -719,3 +719,12 @@ LIMIT 100;
 KILL MUTATION WHERE mutation_id = 'mutation_3.txt';
 KILL MUTATION WHERE mutation_id = 'mutation_7.txt';
 KILL MUTATION WHERE mutation_id = 'mutation_8.txt';
+
+SELECT
+    Account,
+    `From Bank`,
+    `To Bank`,
+    `Time Category`
+FROM card_data.large_patterns
+WHERE `From Bank` = `To Bank`
+LIMIT 100;
