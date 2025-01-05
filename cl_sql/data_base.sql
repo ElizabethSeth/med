@@ -652,6 +652,8 @@ SELECT
 FROM card_data.large_patterns;
 
 
+
+
 SELECT
     mutation_id,
     command,
@@ -664,10 +666,10 @@ WHERE table = 'large_patterns';
 
 
 
-
-
-
-
+SELECT
+    Timestamp,
+    `Time Category`
+FROM card_data.large_patterns;
 
 
 
@@ -713,3 +715,7 @@ SELECT
 FROM
     card_data.large_patterns
 LIMIT 100;
+
+KILL MUTATION WHERE mutation_id = 'mutation_3.txt';
+KILL MUTATION WHERE mutation_id = 'mutation_7.txt';
+KILL MUTATION WHERE mutation_id = 'mutation_8.txt';
