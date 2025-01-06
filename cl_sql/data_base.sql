@@ -728,3 +728,14 @@ SELECT
 FROM card_data.large_patterns
 WHERE `From Bank` = `To Bank`
 LIMIT 100;
+
+SELECT
+    Account,
+    CASE
+        WHEN match(Account, '^[0-9]+$') THEN 'Numeric'
+        WHEN match(Account, '^[A-Z]+$') THEN 'Alphabetic'
+        WHEN match(Account, '^[A-Z0-9]+$') THEN 'Alphanumeric'
+        ELSE 'Other'
+        END AS Account_Type
+FROM card_data.large_patterns
+LIMIT 100;
