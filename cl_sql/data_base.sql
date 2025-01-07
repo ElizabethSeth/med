@@ -480,6 +480,9 @@ ORDER BY `Receiving Currency`, Year, Month_Name, Day;
 select * from card_data.large_patterns limit 10;
 
 
+
+
+
 SELECT
     Account,
     COUNT(*) AS repetitions
@@ -590,21 +593,6 @@ SELECT
 FROM system.mutations
 WHERE table = 'large_patterns';
 
-KILL MUTATION WHERE mutation_id = 'mutation_4.txt';
-KILL MUTATION WHERE mutation_id = 'mutation_5.txt';
-KILL MUTATION WHERE mutation_id = 'mutation_6.txt';
-
-
-OPTIMIZE TABLE card_data.large_patterns FINAL;
-
-
-SELECT
-    *
-FROM card_data.large_patterns
-LIMIT 100;
-
-
-DESCRIBE TABLE card_data.large_patterns;
 
 SELECT
     Timestamp,
@@ -634,22 +622,6 @@ SELECT
 FROM card_data.large_patterns
 LIMIT 100;
 
-
-ALTER TABLE card_data.large_patterns
-UPDATE `Time Category` = CASE
-                             WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 6 AND 12 THEN 'Morning'
-                             WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 12 AND 18 THEN 'Afternoon'
-                             WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 18 AND 24 THEN 'Evening'
-                             ELSE 'Night'
-    END
-WHERE Timestamp IS NOT NULL;
-
-
-SELECT
-
-    COUNT(*) AS total_rows,
-    SUM(Timestamp IS NOT NULL) AS non_null_timestamps
-FROM card_data.large_patterns;
 
 
 
@@ -662,80 +634,64 @@ SELECT
 FROM system.mutations
 WHERE table = 'large_patterns';
 
-
-
-
-
-SELECT
-    Timestamp,
-    `Time Category`
-FROM card_data.large_patterns;
-
-
-
-
-
-
-
-
-
-
-
-
-SELECT
-    CASE
-        WHEN toHour(Timestamp) BETWEEN 6 AND 12 THEN 'Morning'
-        WHEN toHour(Timestamp) BETWEEN 12 AND 18 THEN 'Afternoon'
-        WHEN toHour(Timestamp) BETWEEN 18 AND 24 THEN 'Evening'
-        ELSE 'Night'
-        END AS `Time Category`
-FROM card_data.large_patterns;
-
-
-ALTER TABLE card_data.large_patterns
-UPDATE `Time Category` = CASE
-                             WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 6 AND 12 THEN 'Morning'
-                             WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 12 AND 18 THEN 'Afternoon'
-                             WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 18 AND 24 THEN 'Evening'
-                             ELSE 'Night'
-    END
-WHERE Timestamp IS NOT NULL;
-
-
-
-
-SELECT
-    Timestamp,
-    CASE
-        WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 6 AND 12 THEN 'Morning'
-        WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 12 AND 18 THEN 'Afternoon'
-        WHEN toHour(parseDateTimeBestEffort(replace(Timestamp, '/', '-'))) BETWEEN 18 AND 24 THEN 'Evening'
-        ELSE 'Night'
-        END AS TempTimeCategory
-FROM
-    card_data.large_patterns
-LIMIT 100;
-
 KILL MUTATION WHERE mutation_id = 'mutation_3.txt';
 KILL MUTATION WHERE mutation_id = 'mutation_7.txt';
 KILL MUTATION WHERE mutation_id = 'mutation_8.txt';
 
-SELECT
-    Account,
-    `From Bank`,
-    `To Bank`,
-    `Time Category`
-FROM card_data.large_patterns
-WHERE `From Bank` = `To Bank`
-LIMIT 100;
+
+
+
+
+ALTER TABLE card_data.large_patterns ADD COLUMN Account_Type String;
+
+select * from card_data.large_patterns limit 10;
+
+
+ALTER TABLE card_data.large_patterns
+UPDATE Account_Type = CASE
+                          WHEN match(Account, '^[0-9]+$') THEN 'Numeric'
+                          WHEN match(Account, '^[A-Z]+$') THEN 'Alphabetic'
+                          WHEN match(Account, '^[A-Z0-9]+$') THEN 'Alphanumeric'
+                          ELSE 'Other'
+    END
+WHERE Account IS NOT NULL;
+
+
+
+
+
+select
+    --'hiiiiiiiii' as st,
+    extractAll('hhiiiiiiiii', '^h.+.') as match_result;
+
+
+
+
+
+
+
+
+
+
+
 
 SELECT
-    Account,
-    CASE
-        WHEN match(Account, '^[0-9]+$') THEN 'Numeric'
-        WHEN match(Account, '^[A-Z]+$') THEN 'Alphabetic'
-        WHEN match(Account, '^[A-Z0-9]+$') THEN 'Alphanumeric'
-        ELSE 'Other'
-        END AS Account_Type
-FROM card_data.large_patterns
-LIMIT 100;
+    Account
+    ,SUM(1) OVER (PARTITION BY match(Account, 'D3'))AS cumulative_sum
+    ,COUNT(*) OVER (PARTITION BY match(Account, 'D3')) AS total_count
+    ,SUM(1) OVER (PARTITION BY match(Account, 'D3') order by Account) AS cumulative_sum_order
+    ,COUNT(*) OVER (PARTITION BY match(Account, 'D3' ) order by Account) AS total_count_order
+FROM
+    card_data.large_patterns
+WHERE
+    match(Account, 'D3')
+limit 10;
+
+
+
+
+
+
+
+
+

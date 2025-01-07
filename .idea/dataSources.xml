@@ -14,6 +14,16 @@
       <jdbc-driver>com.clickhouse.jdbc.ClickHouseDriver</jdbc-driver>
       <jdbc-url>jdbc:clickhouse://34.60.92.224:8123</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
+      <driver-properties>
+        <property name="connect_timeout" value="999999999" />
+      </driver-properties>
+    </data-source>
+    <data-source source="LOCAL" name="admin" uuid="72a00998-5f87-42a1-a679-24e98ceef317">
+      <driver-ref>clickhouse</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.clickhouse.jdbc.ClickHouseDriver</jdbc-driver>
+      <jdbc-url>jdbc:clickhouse://34.60.92.224:8123</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>
 </project>
