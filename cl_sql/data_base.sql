@@ -669,12 +669,6 @@ select
 
 
 
-
-
-
-
-
-
 SELECT
     Account
     ,SUM(1) OVER (PARTITION BY match(Account, 'D3'))AS cumulative_sum
@@ -690,7 +684,12 @@ limit 10;
 
 
 
-
+SELECT
+    Account,
+    LENGTH(Account) AS Account_Length
+FROM card_data.large_patterns
+WHERE match(Account, '^.{16,}$')
+LIMIT 100;
 
 
 
