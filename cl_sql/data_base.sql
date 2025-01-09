@@ -685,12 +685,12 @@ limit 10;
 
 
 SELECT
-    Account,
-    LENGTH(Account) AS Account_Length
-FROM card_data.large_patterns
-WHERE match(Account, '^.{16,}$')
-LIMIT 100;
+    parseDateTimeBestEffort(replace(`Timestamp`, '/', '-')) AS Parsed_Timestamp
+FROM card_data.large_patterns;
 
 
-
-
+SELECT
+    parseDateTimeBestEffort(
+            extract(`Timestamp`, '\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}')
+    ) AS Parsed_Timestamp
+FROM card_data.large_patterns;
