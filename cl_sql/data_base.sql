@@ -567,21 +567,12 @@ FROM card_data.large_patterns;
 
 
 
-
-
-
-
-
-
-
-ALTER TABLE card_data.large_patterns
-    DROP COLUMN `Time Category`;
-
 ALTER TABLE card_data.large_patterns
     ADD COLUMN `Time Category` Nullable(String);
 
 
-
+ALTER TABLE card_data.large_patterns
+    DROP COLUMN `Time Category`;
 
 SELECT
     database,
@@ -616,11 +607,6 @@ FROM card_data.large_patterns
 LIMIT 100;
 
 
-SELECT
-    Timestamp,
-    parseDateTimeBestEffort(replace(Timestamp, '/', '-')) AS ParsedTimestamp
-FROM card_data.large_patterns
-LIMIT 100;
 
 
 
@@ -688,3 +674,26 @@ SELECT
     parseDateTimeBestEffort(replace(`Timestamp`, '/', '-')) AS Parsed_Timestamp
 FROM card_data.large_patterns;
 
+CREATE TABLE dataset (
+                         publications String,
+                         patents String,
+                         projects String,
+                         organizations String,
+                         input_url String,
+                         linkedin_id String,
+                         id String,
+                         name String,
+                         country_code String,
+                         position String,
+                         city String,
+                         current_company String,
+                         about String,
+                         posts String,
+                         experience String,
+                         url String,
+                         followers UInt32,
+                         connections UInt32,
+                         current_company_company_id String,
+                         current_company_name String
+) ENGINE = MergeTree()
+      ORDER BY id;
