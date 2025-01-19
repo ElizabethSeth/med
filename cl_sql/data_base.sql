@@ -684,3 +684,13 @@ CREATE TABLE darknet_data (
 show tables from card_data;
 
 select * from card_data.darknet_data limit 10;
+
+SELECT *
+FROM card_data.darknet_data
+WHERE job_title REGEXP '.*Engineer.*';
+
+
+
+SELECT *
+FROM card_data.darknet_data
+WHERE abbreviations REGEXP '.*KW.*';
