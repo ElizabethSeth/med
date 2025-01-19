@@ -662,38 +662,25 @@ WHERE
     match(Account, 'D3')
 limit 10;
 
-CREATE TABLE linkedin_data (
-                               id String,
-                               name String,
-                               country_code String,
-                               position String,
-                               city String,
-                               current_company String,
-                               about String,
-                               posts String,
-                               experience String,
-                               url String,
-                               people_also_viewed String,
-                               educations_details String,
-                               education String,
-                               recommendations_count Int32,
-                               avatar String,
-                               languages String,
-                               certifications String,
-                               recommendations String,
-                               volunteer_experience String,
-                               courses String,
-                               followers Int32,
-                               connections Int32,
-                               current_company_company_id String,
-                               current_company_name String,
-                               publications String,
-                               patents String,
-                               projects String,
-                               organizations String,
-                               input_url String,
-                               linkedin_id String
+CREATE TABLE darknet_data (
+                              id String,
+                              Name String,
+                              abbreviations String,
+                              country String,
+                              company_id String,
+                              industry String,
+                              link String,
+                              job_title String,
+                              descr String,
+                              profile_link String,
+                              University String,
+                              duration String,
+                              subtitle String,
+                              subtitleURL String,
+                              start_date String,
+                              end_date String
 ) ENGINE = MergeTree()
       ORDER BY id;
 show tables from card_data;
 
+select * from card_data.darknet_data limit 10;
