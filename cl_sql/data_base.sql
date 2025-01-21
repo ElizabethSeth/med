@@ -689,6 +689,9 @@ SELECT *
 FROM card_data.darknet_data
 WHERE job_title REGEXP '.*Engineer.*';
 
+SELECT *
+FROM card_data.darknet_data
+WHERE abbreviations REGEXP '^[A-Za-z]+$';
 
 
 SELECT *
