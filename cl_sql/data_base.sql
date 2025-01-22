@@ -662,6 +662,16 @@ WHERE
     match(Account, 'D3')
 limit 10;
 
+
+SELECT
+    Account
+    ,`Receiving Currency`
+    ,dense_rank() OVER (PARTITION BY match(Account, '^[A-Z0-9]+$'), `Receiving Currency` ORDER BY Account) AS dense_rank_per_currency
+
+
+FROM   card_data.large_patterns
+WHERE
+    match(Account, '^[A-Z0-9]+$');
 CREATE TABLE darknet_data (
                               id String,
                               Name String,
