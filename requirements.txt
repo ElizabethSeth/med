@@ -1,4 +1,5 @@
 clickhouse-connect
 python-dotenv
 pandas
-
+re
+csv
