@@ -39,7 +39,7 @@ def full_func_creation_table(df, db, table):
         'int64': 'Int64',
         'float64': 'Float64',
         'bool': 'UInt8',
-        'datetime64[ns]': 'DateTime'
+        'datetime64': 'DateTime'
     }
 
     columns = [

@@ -4,7 +4,6 @@ import builtins
 import re
 from datetime import datetime
 
-# Конфигурация
 import os
 from dotenv import load_dotenv
 CLICKHOUSE_DB = 'card_data'
